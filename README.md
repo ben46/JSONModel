@@ -26,7 +26,7 @@ Adding JSONModel to your project
 #### via Cocoa pods
 
 ```ruby
-pod 'JSONModel'
+pod 'JSONModel', :git => 'https://github.com/ben46/JSONModel.git'
 ```
 
 If you want to read more about CocoaPods, have a look at [this short tutorial](http://www.raywenderlich.com/12139/introduction-to-cocoapods).
