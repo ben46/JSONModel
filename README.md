@@ -33,54 +33,8 @@ If you want to read more about CocoaPods, have a look at [this short tutorial](h
 
 
 ------------------------------------
-Basic usage
-====================================
-
-Consider you have a JSON like this:
-```javascript
-{"id":"10", "country":"Germany", "dialCode": 49, "isInEurope":true}
-```
-
- * Create a new Objective-C class for your data model and make it inherit the JSONModel class. 
- * Declare properties in your header file with the name of the JSON keys:
-
-```objective-c
-#import "JSONModel.h"
-
-@interface CountryModel : JSONModel
-
-@property (assign, nonatomic) int id;
-@property (strong, nonatomic) NSString* country;
-@property (strong, nonatomic) NSString* dialCode;
-@property (assign, nonatomic) BOOL isInEurope;
-
-@end
-```
-There's no need to do anything in the **.m** file.
-
- * Initialize your model with data:
-
-```objective-c
-#import "CountryModel.h"
-...
-
-NSString* json = (fetch here JSON from Internet) ... 
-NSError* err = nil;
-CountryModel* country = [[CountryModel alloc] initWithString:json error:&err];
-
-```
-
-If the validation of the JSON passes you have all the corresponding properties in your model populated from the JSON. JSONModel will also try to convert as much data to the types you expect, in the example above it will:
-
-* convert "id" from string (in the JSON) to an int for your class
-* just copy country's value
-* convert dialCode from number (in the JSON) to an NSString value 
-* finally convert isInEurope to a BOOL for your BOOL property
-
-And the good news is all you had to do is define the properties and their expected types.
 
 
--------
 Examples
 =======
 
