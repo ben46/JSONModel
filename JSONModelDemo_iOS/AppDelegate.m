@@ -7,8 +7,33 @@
 //
 
 #import "AppDelegate.h"
+//#import "MasterViewController.h"
+#import "JSONModel.h"
+#import "FMDBHelper.h"
+#import <FMDatabaseQueue.h>
 
-#import "MasterViewController.h"
+@interface TModel : JSONModel
+
+@property (strong, nonatomic) NSString<JMUnique>  *userName;
+//@property (strong, nonatomic) NSString<JMText>  *desc;
+@property (strong, nonatomic) NSString  *psw;
+@property (strong, nonatomic) NSNumber<JMPrimaryKey> *ID;
+@property (strong, nonatomic) NSDecimalNumber *groupID;
+
+@property (assign, nonatomic) NSInteger followerCount;
+@property (assign, nonatomic) int isVIP;
+@property (assign, nonatomic) NSTimeInterval updateAt;
+@property (assign, nonatomic) double money;
+@property (assign, nonatomic) float moneyf;
+@property (assign, nonatomic) long hahalong;
+@property (assign, nonatomic) short hahashort;
+@property (assign, nonatomic) NSUInteger hahaUint;
+
+
+@end
+
+@implementation TModel
+@end
 
 @implementation AppDelegate
 
@@ -17,10 +42,27 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
 
-    MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController" bundle:nil];
-    self.navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
-    self.window.rootViewController = self.navigationController;
+//    MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController" bundle:nil];
+//    self.navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
+//    self.window.rootViewController = self.navigationController;
+    
+    TModel *model = [[TModel alloc] initWithDictionary:@{@"userName": @"zhou",
+                                                               @"psw":@"123",
+                                                               @"ID":@1,
+                                                               @"isVIP":@1,
+                                                               @"updateAt":@1234234,
+                                                               @"money":@11.1,
+                                                               @"followerCount": @3
+                                                               }
+                                                       error:nil];
+    [model JM_saveAsync:nil];
+    
+    TModel *model1 = [TModel JM_find:@1];
+    NSLog(@"%@", [model1 toDictionary]);
+
     [self.window makeKeyAndVisible];
+    
+    
     return YES;
 }
 

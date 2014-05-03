@@ -21,11 +21,12 @@
 
 #import <objc/runtime.h>
 #import <objc/message.h>
-
+#import <FMDB/FMDatabase.h>
 
 #import "JSONModel.h"
 #import "JSONModelClassProperty.h"
 #import "JSONModelArray.h"
+#import "FMDBHelper.h"
 
 #pragma mark - associated objects names
 static const char * kMapperObjectKey;
@@ -84,7 +85,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
 {
     //if first instance of this model, generate the property list
     if (!objc_getAssociatedObject(self.class, &kClassPropertiesKey)) {
-        [self __inspectProperties];
+        [[self class] __inspectProperties];
     }
 
     //if there's a custom key mapper, store it in the associated object
@@ -200,6 +201,8 @@ static JSONKeyMapper* globalKeyMapper = nil;
     return self;
 }
 
+
+
 -(JSONKeyMapper*)__keyMapper
 {
     //get the model key mapper
@@ -208,6 +211,8 @@ static JSONKeyMapper* globalKeyMapper = nil;
 
     return keyMapper;
 }
+
+
 
 -(BOOL)__doesDictionary:(NSDictionary*)dict matchModelWithKeyMapper:(JSONKeyMapper*)keyMapper error:(NSError**)err
 {
@@ -523,7 +528,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
 }
 
 //inspects the class, get's a list of the class properties
--(void)__inspectProperties
++ (void)__inspectProperties
 {
     //JMLog(@"Inspect class: %@", [self class]);
     
@@ -567,7 +572,25 @@ static JSONKeyMapper* globalKeyMapper = nil;
             if ([propertyAttributes hasPrefix:@"Tc,"]) {
                 //mask BOOLs as structs so they can have custom convertors
                 p.structName = @"BOOL";
+                p.DB_typeName = @"BOOL";
+            }  else if ([propertyAttributes hasPrefix:@"Ti,"]) {
+                // int
+                p.DB_typeName = @"INT";
+
+            } else if ([propertyAttributes hasPrefix:@"Td,"]) {
+                
+                p.DB_typeName = @"DOUBLE";
+            } else if ([propertyAttributes hasPrefix:@"Tf,"]) {
+                // float
+                p.DB_typeName = @"FLOAT";
+            } else if ([propertyAttributes hasPrefix:@"Tl,"]) {
+                // long
+                p.DB_typeName = @"INT";
+            } else if ([propertyAttributes hasPrefix:@"Ts,"]) {
+                // short
+                p.DB_typeName = @"SMALLINT";
             }
+            
             
             scanner = [NSScanner scannerWithString: propertyAttributes];
             
@@ -842,6 +865,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
 -(BOOL)__customGetValue:(id<NSObject>*)value forProperty:(JSONModelClassProperty*)property
 {
     if (property.getterType == kNotInspected) {
+        
         //check for a custom property getter method
         NSString* ucfirstName = [property.name stringByReplacingCharactersInRange: NSMakeRange(0,1)
                                                                        withString: [[property.name substringToIndex:1] uppercaseString]];
@@ -1226,7 +1250,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
 
 +(BOOL)propertyIsOptional:(NSString*)propertyName
 {
-    return NO;
+    return YES;
 }
 
 +(BOOL)propertyIsIgnored:(NSString *)propertyName
@@ -1262,3 +1286,383 @@ static JSONKeyMapper* globalKeyMapper = nil;
 }
 
 @end
+
+
+@implementation JSONModel (FMDB)
+
+
+#pragma mark -
+
+-(NSArray*)__propertiesNotNull__
+{
+    NSMutableArray *prosNotNull = [NSMutableArray array];
+    for (JSONModelClassProperty* prop in [self __properties__]) {
+        
+        if(prop.isStandardJSONType == NO) {
+            [prosNotNull addObject:prop];
+        } else {
+            SEL customPropertyGetter = NSSelectorFromString(prop.name);
+            if ([self respondsToSelector: customPropertyGetter]) {
+                
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+                id value = [self performSelector:customPropertyGetter];
+#pragma clang diagnostic pop
+                if(value != nil) {
+                    [prosNotNull addObject:prop];
+                }
+            }
+        }
+       
+    }
+    return (NSArray *)prosNotNull;
+}
+
+
+#pragma mark - create table
+
+
+// zq.zhou@tuobian.cn
+- (NSString *)__createTableSql
+{
+    
+    NSArray *prosNotNull = [self __properties__];
+    NSMutableString *sql1 = [NSMutableString stringWithFormat:@""];
+    NSInteger pkCount = 0;
+
+    for (int i = 0; i < prosNotNull.count; i++) {
+        
+        JSONModelClassProperty* property = [prosNotNull objectAtIndex:i];
+        if(property.isStandardJSONType) {
+            if([property.type isSubclassOfClass:[NSString class]]
+               || [property.type isSubclassOfClass:[NSMutableString class]]) {
+                
+                if([property.protocol isEqualToString:@"JMText"]) {
+                    [sql1 appendFormat:@"%@ TEXT ", property.name];
+                } else {
+                    // varchar
+                    [sql1 appendFormat:@"%@ VARCHAR(1000) ", property.name];
+                }
+            } else if([property.type isSubclassOfClass:[NSDecimalNumber class]]) {
+                [sql1 appendFormat:@"%@ decimal ", property.name];
+            }  else if([property.type isSubclassOfClass:[NSNumber class]]) {
+                
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+                id value = [self performSelector:NSSelectorFromString(property.name)];
+#pragma clang diagnostic pop
+                
+                if (strcmp([value objCType], @encode(BOOL)) == 0) {
+                    
+                    [sql1 appendFormat:@"%@ BOOL ", property.name];
+                    
+                } else if (strcmp([value objCType], @encode(int)) == 0) {
+                    
+                    [sql1 appendFormat:@"%@ INT ", property.name];
+
+                } else if (strcmp([value objCType], @encode(long)) == 0) {
+                    
+                    [sql1 appendFormat:@"%@ INT ", property.name];
+
+                } else if (strcmp([value objCType], @encode(short)) == 0) {
+                    
+                    [sql1 appendFormat:@"%@ SMALLINT ", property.name];
+
+                } else {
+                    
+                    [sql1 appendFormat:@"%@ DOUBLE ", property.name];
+                    
+                }
+                
+            }
+            
+        } else {
+            if([property.structName isEqualToString:@"BOOL"]) {
+                [sql1 appendFormat:@"%@ BOOL ", property.name];
+            } else if(property.DB_typeName) {
+                [sql1 appendFormat:@"%@ %@ ", property.name, property.DB_typeName];
+            } else {
+                [sql1 appendFormat:@"%@ double ", property.name];
+            }
+            
+        }
+        
+        if([property.protocol isEqualToString:@"JMNotNull"]) {
+            [sql1 appendString:@" NOT NULL"];
+        }
+        
+        if([[self class] __isPrimaryKey:property]) {
+            [sql1 appendString:@" PRIMARY KEY"];
+            pkCount++;
+        } else if([property.protocol isEqualToString:@"JMUnique"]
+                  || [property.protocol isEqualToString:@"Index"]) {
+            [sql1 appendString:@" UNIQUE"];
+        }
+        
+        if(i != prosNotNull.count - 1) {
+            [sql1 appendString:@", "];
+        }
+    }
+    
+    NSAssert(pkCount <= 1, @"create table sql error, one model can not have more than one primary key");
+    
+    NSString *sql = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@ (%@ )", [[self class] __tableName], sql1 ] ;
+    
+    return sql;
+    
+}
+
+- (BOOL)JM_createTableIfNeeded;
+{
+    NSString *sql = [self __createTableSql];
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+    return [[FMDBHelper sharedInstance] executeUpdateWithFormat:sql];
+#pragma clang diagnostic pop
+
+}
+
++ (NSString *)__tableName
+{
+    return NSStringFromClass([self class]);
+}
+
+#pragma mark - query help
+
++ (NSArray *)JM_arrayFromResultSet:(FMResultSet *)rs
+{
+    NSMutableArray *list = [NSMutableArray array];
+    
+    while([rs next]) {
+        id model =[[[self class] alloc] initWithDictionary:[rs resultDictionary] error:nil];
+        [list addObject:model];
+    }
+    
+    return list;
+}
+
++ (instancetype)JM_objectFromResultSet:(FMResultSet *)rs
+{
+    NSArray *array = [self JM_arrayFromResultSet:rs];
+    
+    if(array.count >= 1) {
+        return [array objectAtIndex:0];
+    }
+    return nil;
+}
+
+#pragma mark - query
+
+// get the specific oject with primary key
++ (instancetype)JM_find:(id)pkValue;
+{
+    NSString *sql = [NSString stringWithFormat:@"select * from %@ where %@= '%@'",
+                     [self __tableName], [self __PK], pkValue];
+    
+    FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
+    return [self JM_objectFromResultSet:rs];
+}
+
++ (NSArray *)JM_all
+{
+    return [self JM_whereRaw:@""];
+}
+
++ (NSArray *)JM_allOrderBy:(NSString *)orderby;
+{
+    NSString *sql = [NSString stringWithFormat:@" order by %@", orderby];
+    return [self JM_whereRaw:sql];
+}
+
++ (NSArray *)JM_whereCol:(NSString *)colName isGreaterThan:(id)value;
+{
+    return [self JM_whereCol:colName isGreaterThan:value orderBy:nil];
+}
+
++ (NSArray *)JM_whereCol:(NSString *)colName isGreaterThan:(id)value orderBy:(NSString *)orderBy;
+{
+    return [self JM_whereCol:colName compareOperator:@">" compareValue:value orderBy:orderBy];
+}
+
++ (NSArray *)JM_whereCol:(NSString *)key isLessThan:(id)value;
+{
+    return [self JM_whereCol:key isLessThan:value orderBy:nil];
+}
+
++ (NSArray *)JM_whereCol:(NSString *)colName isLessThan:(id)value orderBy:(NSString *)orderBy;
+{
+    return [self JM_whereCol:colName compareOperator:@"<" compareValue:value orderBy:orderBy];
+}
+
++ (NSArray *)JM_whereCol:(NSString *)colName isEqualTo:(id)value;
+{
+    return [self JM_whereCol:colName isEqualTo:value orderBy:nil];
+}
+
++ (NSArray *)JM_whereCol:(NSString *)colName isEqualTo:(id)value orderBy:(NSString *)orderBy;
+{
+    return [self JM_whereCol:colName compareOperator:@"=" compareValue:value orderBy:orderBy];
+}
+
++ (NSArray *)JM_whereCol:(NSString *)colName compareOperator:(NSString *)opr compareValue:(id)value orderBy:(NSString *)orderby;
+{
+    NSString *sql = nil;
+    
+    if (orderby) {
+        sql = [NSString stringWithFormat:@"where %@ %@ '%@' order by %@", opr, colName, value, orderby];
+    } else {
+        sql = [NSString stringWithFormat:@"where %@ %@ '%@'", opr, colName, value];
+    }
+    return [self JM_whereRaw:sql];
+}
+
++ (NSArray *)JM_whereRaw:(NSString *)sqlRaw;
+{
+    NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", NSStringFromClass([self class]), sqlRaw];
+    FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
+    return [self JM_arrayFromResultSet:rs];
+}
+
+#pragma mark - insert & update
+
+// zq.zhou@tuobian.cn
+- (BOOL)JM_save;
+{
+    [self JM_createTableIfNeeded];
+    NSString *sql = [self __saveSql];
+    
+    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
+}
+
+// zq.zhou@tuobian.cn
+- (void)JM_saveAsync:(JMCompletionBlock)block;
+{
+    [self JM_createTableIfNeeded];
+    NSString *sql = [self __saveSql];
+    __block JMCompletionBlock blockCp = [block copy];
+    
+    [[FMDBHelper sharedInstance] JM_executeUpdate:sql block:^(NSError *err, id rsl){
+        if(blockCp) {
+            blockCp(nil);
+        }
+    }];
+}
+
+// get save sql
+- (NSString *)__saveSql;
+{
+    NSMutableString *keysSql = [NSMutableString stringWithFormat:@""];
+    NSMutableString *valuesSql = [NSMutableString stringWithFormat:@""];
+    
+    NSArray *prosNotNull = [self __propertiesNotNull__];
+    
+    for (int i = 0; i < prosNotNull.count; i++) {
+        JSONModelClassProperty* property = [prosNotNull objectAtIndex:i];
+        if(property.isStandardJSONType) {
+            
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+            id value = [self performSelector:NSSelectorFromString(property.name)];
+#pragma clang diagnostic pop
+            
+            [valuesSql appendFormat:@"'%@'", value];
+            
+        } else {
+            id objValue = nil;
+            objValue = [self valueForKey: property.name];
+            
+            if([property.structName isEqualToString:@"BOOL"]) {
+                BOOL value = [self valueForKey:property.name];
+                [valuesSql appendFormat:@"'%d'", value];
+            } else {
+                NSNumber *value = [self valueForKey:property.name];
+                [valuesSql appendFormat:@"'%@'", value];
+            }
+           
+        }
+        [keysSql appendFormat:@"%@", property.name];
+
+        if(i != prosNotNull.count - 1) {
+            
+            [valuesSql appendString:@","];
+            [keysSql appendString:@","];
+        }
+        
+    }
+    
+    NSString *sql = [NSString stringWithFormat:@"replace into %@ (%@) values (%@)", [[self class] __tableName], keysSql, valuesSql];
+    
+    return sql;
+}
+
+#pragma mark - delete
+
+// zq.zhou@tuobian.cn
+- (BOOL)JM_delete;
+{
+    NSString *sql = [NSString stringWithFormat:@"delete from `%@` where %@ = '%@'", [[self class] __tableName], [[self class]__PK], [self __PKValue]];
+    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
+}
+
++ (BOOL)JM_deleteWhereRaw:(NSString *)sqlRaw
+{
+    NSString *sql = [NSString stringWithFormat:@"delete from `%@` where %@", [self __tableName], sqlRaw];
+    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
+}
+
+#pragma mark - pk
+
+// get primary key
++ (NSString *)__PK
+{
+    JSONModelClassProperty *prop = [[self class] __PKProp];
+    if(prop) {
+        return prop.name;
+    }
+    return nil;
+}
+
++ (JSONModelClassProperty *)__PKProp
+{
+    NSDictionary* classProperties = objc_getAssociatedObject(self.class, &kClassPropertiesKey);
+    if (!classProperties) {
+        [[self class] __inspectProperties];
+        classProperties = objc_getAssociatedObject(self.class, &kClassPropertiesKey);
+    }
+    
+    for (JSONModelClassProperty* p in [classProperties allValues]) {
+        if([self __isPrimaryKey:p]) {
+            return p;
+        }
+    }
+    return nil;
+}
+
+- (id)__PKValue
+{
+    JSONModelClassProperty *prop = [[self class] __PKProp];
+    if(prop) {
+        SEL customPropertyGetter = NSSelectorFromString(prop.name);
+        if ([self respondsToSelector: customPropertyGetter]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+            id value = [self performSelector:customPropertyGetter withObject:nil];
+#pragma clang diagnostic pop
+            if(value != nil) {
+                return value;
+            }
+        }
+    }
+    return nil;
+}
+
++ (BOOL)__isPrimaryKey:(JSONModelClassProperty *)p
+{
+    return [p.protocol isEqualToString:@"JMPrimaryKey"];
+}
+
+
+@end
+
+

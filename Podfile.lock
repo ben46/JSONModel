@@ -1,0 +1,14 @@
+PODS:
+  - FMDB (2.2):
+    - FMDB/standard
+  - FMDB/common (2.2)
+  - FMDB/standard (2.2):
+    - FMDB/common
+
+DEPENDENCIES:
+  - FMDB
+
+SPEC CHECKSUMS:
+  FMDB: e0dd09464b4e1a1cd7fa51ea835ae821b5656865
+
+COCOAPODS: 0.32.1

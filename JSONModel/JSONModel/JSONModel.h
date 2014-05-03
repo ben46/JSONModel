@@ -29,6 +29,7 @@ lastPathComponent], __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__] )
 #endif
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+
 #pragma mark - Property Protocols
 /**
  * Protocol for defining properties in a JSON Model class that should not be considered at all
@@ -317,5 +318,140 @@ lastPathComponent], __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__] )
  * it'll just try to match the dictionary keys to the model's properties
  */
 -(void)mergeFromDictionary:(NSDictionary*)dict useKeyMapping:(BOOL)useKeyMapping;
+
+
+@end
+@class FMResultSet;
+
+/**
+ *  PRIMARY KEY Constraint
+ */
+@protocol JMPrimaryKey <NSObject>
+@end
+/**
+ *  NOT NULL Constraint
+ */
+@protocol JMNotNull <NSObject>
+@end
+
+/**
+ *  UNIQUE Constraint
+ */
+@protocol JMUnique <NSObject>
+@end
+
+/**
+ *  Use this when your column value length is greater than 1000
+ */
+@protocol JMText <NSObject>
+@end
+
+/**
+ *  Depends on your usage(NOT IN USE YET)
+ *
+ *  @param result `NSArray` or `JSONModel` subclass type
+ */
+typedef void(^JMCompletionBlock)(id result);
+
+@interface JSONModel (FMDB)
+
+/**
+ *  Find the first object with matches the primary key value
+ *
+ *  @param pkValue primary key value
+ *
+ *  @return first object
+ */
++ (instancetype)JM_find:(id)pkValue;
+
+/**
+ *  Query all from the table which name equals to the class name you inherit
+ *
+ *  @return result array
+ */
++ (NSArray *)JM_all;
+
+/**
+ *  Query all and order by the column name
+ *  You can specify the `asc` or `desc`
+ *  Example #1: JM_allOrderBy:@"userName desc"
+ *  Example #2: JM_allOrderBy:@"userName asc"
+ *
+ *  @param orderby condition sql
+ *
+ *  @return result array
+ */
++ (NSArray *)JM_allOrderBy:(NSString *)orderby;
+
+/**
+ *  Query table with condition
+ *
+ *  @param colName column name
+ *  @param value   column value
+ *
+ *  @return result array
+ */
++ (NSArray *)JM_whereCol:(NSString *)colName isGreaterThan:(id)value;
+
+/**
+ *  Query table with condition
+ *
+ *  @param colName column name
+ *  @param value   column value
+ *  @param orderby `column name` + `desc/asc`
+ *
+ *  @return result array
+ */
++ (NSArray *)JM_whereCol:(NSString *)colName isGreaterThan:(id)value orderBy:(NSString *)orderBy;
+
++ (NSArray *)JM_whereCol:(NSString *)colName isLessThan:(id)value;
+
++ (NSArray *)JM_whereCol:(NSString *)colName isLessThan:(id)value orderBy:(NSString *)orderBy;
+
++ (NSArray *)JM_whereCol:(NSString *)colName isEqualTo:(id)value;
+
++ (NSArray *)JM_whereCol:(NSString *)colName isEqualTo:(id)value orderBy:(NSString *)orderBy;
+
++ (NSArray *)JM_whereCol:(NSString *)colName compareOperator:(NSString *)opr compareValue:(id)value orderBy:(NSString *)orderby;
+
+/**
+ *  Custom condition
+ *
+ *  @param sqlRaw sql statement
+ *
+ *  @return result array
+ */
++ (NSArray *)JM_whereRaw:(NSString *)sqlRaw;
+
+/**
+ *  Save data model in sqlite
+ *  I recommend ussing `JM_saveAsync` method because saving data may cause blocking main thread
+ *
+ *  @return if the data is saved
+ */
+- (BOOL)JM_save;
+
+/**
+ *  Async save data model into sqlite
+ *
+ *  @param completionBlock revoked when saved
+ */
+- (void)JM_saveAsync:(JMCompletionBlock)completionBlock;
+
+/**
+ *  Detele data from table which matches the current primary key
+ *
+ *  @return YES: success; NO: errer occured
+ */
+- (BOOL)JM_delete;
+
+/**
+ *  Delete data from table which matches the condition you gave
+ *  Example #1: `ID = '1'`
+ *  @param sqlRaw condition
+ *
+ *  @return YES: success; NO: errer occured
+ */
++ (BOOL)JM_deleteWhereRaw:(NSString *)sqlRaw;
 
 @end

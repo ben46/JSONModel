@@ -44,6 +44,8 @@ typedef enum kCustomizationTypes PropertyGetterType;
 /** Struct name if a struct */
 @property (strong, nonatomic) NSString* structName;
 
+@property (strong, nonatomic) NSString* DB_typeName;
+
 /** The name of the protocol the property conforms to (or nil) */
 @property (copy, nonatomic) NSString* protocol;
 
