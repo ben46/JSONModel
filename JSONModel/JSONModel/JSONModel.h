@@ -364,6 +364,8 @@ typedef void(^JMCompletionBlock)(id result);
  */
 + (instancetype)JM_find:(id)pkValue;
 
++ (instancetype)JM_findFirstWhereRaw:(NSString *)sqlRaw;
+
 /**
  *  Query all from the table which name equals to the class name you inherit
  *

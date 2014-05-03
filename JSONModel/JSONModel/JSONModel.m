@@ -1444,10 +1444,9 @@ static JSONKeyMapper* globalKeyMapper = nil;
 
 + (instancetype)JM_objectFromResultSet:(FMResultSet *)rs
 {
-    NSArray *array = [self JM_arrayFromResultSet:rs];
-    
-    if(array.count >= 1) {
-        return [array objectAtIndex:0];
+    while([rs next]) {
+        id model =[[[self class] alloc] initWithDictionary:[rs resultDictionary] error:nil];
+        return model;
     }
     return nil;
 }
@@ -1460,6 +1459,13 @@ static JSONKeyMapper* globalKeyMapper = nil;
     NSString *sql = [NSString stringWithFormat:@"select * from %@ where %@= '%@'",
                      [self __tableName], [self __PK], pkValue];
     
+    FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
+    return [self JM_objectFromResultSet:rs];
+}
+
++ (instancetype)JM_findFirstWhereRaw:(NSString *)sqlRaw;
+{
+    NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", NSStringFromClass([self class]), sqlRaw];
     FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
     return [self JM_objectFromResultSet:rs];
 }
