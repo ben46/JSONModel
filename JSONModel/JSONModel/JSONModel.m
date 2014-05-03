@@ -1567,12 +1567,13 @@ static JSONKeyMapper* globalKeyMapper = nil;
         JSONModelClassProperty* property = [prosNotNull objectAtIndex:i];
         if(property.isStandardJSONType) {
             
+            if (![self __isJSONModelSubClass:property.type]) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-            id value = [self performSelector:NSSelectorFromString(property.name)];
+                id value = [self performSelector:NSSelectorFromString(property.name)];
 #pragma clang diagnostic pop
-            
-            [valuesSql appendFormat:@"'%@'", value];
+                [valuesSql appendFormat:@"'%@'", value];
+            }
             
         } else {
             id objValue = nil;
