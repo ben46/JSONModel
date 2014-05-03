@@ -16,5 +16,6 @@ Pod::Spec.new do |s|
   s.framework    = 'CoreData'
 
   s.requires_arc = true
+  s.dependency 'FMDB'
 
 end
