@@ -21,7 +21,6 @@ Adding JSONModel to your project
 #### Requirements
 
 * ARC only; iOS 5.0+ 
-* **SystemConfiguration.framework**
 
 #### via Cocoa pods
 
@@ -39,30 +38,29 @@ Examples
 =======
 
 #### Automatic name based mapping
-<table>
-<tr>
-<td valign="top">
-<pre>
+
+JSON from Internet:
+
+```javascript
 {
   "ID": "1",
   "name": "Product name",
   "price": 12.95
 }
-</pre>
-</td>
-<td>
-<pre>
+```
+
+define your data model:
+
+```objective-c
 @interface ProductModel : JSONModel
 @property (assign, nonatomic) NSNumber<JMPrimaryKey> *ID;
 @property (strong, nonatomic) NSString* name;
 @property (assign, nonatomic) float price;
 @end
+```
 
 
-</pre>
-</td>
-</tr>
-</table>
+some where in your code :
 
 
 

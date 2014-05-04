@@ -1567,6 +1567,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
         JSONModelClassProperty* property = [prosNotNull objectAtIndex:i];
         if(property.isStandardJSONType) {
             
+            // ignore JSONModel Object
             if (![self __isJSONModelSubClass:property.type]) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
