@@ -70,11 +70,14 @@ some where in your code :
 
 NSString* json = (fetch here JSON from Internet) ... 
 NSError* err = nil;
+
 CountryModel* country = [[CountryModel alloc] initWithString:json error:&err];
+ // automatically create table && save to database
 [country JM_save];
 
-CountryModel* countryYouJustSaved = [CountryModel JM_find:@1];
-NSLog(@"%@", [model1 toDictionary]);
+// find the value matches the primary key
+CountryModel* countryYouJustSaved = [CountryModel JM_find:@1]; 
+NSLog(@"%@", [countryYouJustSaved toDictionary]);
 
 ```
 
