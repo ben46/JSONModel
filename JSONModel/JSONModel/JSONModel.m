@@ -1338,7 +1338,8 @@ static JSONKeyMapper* globalKeyMapper = nil;
         JSONModelClassProperty* property = [prosNotNull objectAtIndex:i];
         if(property.isStandardJSONType) {
             if([property.type isSubclassOfClass:[NSString class]]
-               || [property.type isSubclassOfClass:[NSMutableString class]]) {
+               ||
+               [property.type isSubclassOfClass:[NSMutableString class]]) {
                 
                 if([property.protocol isEqualToString:@"JMText"]) {
                     [sql1 appendFormat:@"%@ TEXT ", property.name];
