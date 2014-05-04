@@ -35,7 +35,7 @@
 @property (strong, nonatomic) NSString  *psw;
 @property (strong, nonatomic) NSNumber<JMPrimaryKey> *ID;
 @property (strong, nonatomic) NSDecimalNumber *groupID;
-@property (strong, nonatomic) NSArray<SubModel, ConvertOnDemand>       *list;
+@property (strong, nonatomic) NSArray<SubModel>       *list;
 
 @property (assign, nonatomic) NSInteger followerCount;
 @property (assign, nonatomic) int isVIP;

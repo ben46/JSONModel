@@ -70,7 +70,7 @@ lastPathComponent], __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__] )
 /**
  * ConvertOnDemand enables lazy model initialization for NSArrays of models
  *
- * @property (strong, nonatomic) NSArray&lt;JSONModel, ConvertOnDemand&gt;* propertyName;
+ * @property (strong, nonatomic) NSArray<JSONModel, ConvertOnDemand>* propertyName;
  */
 @protocol ConvertOnDemand
 @end
