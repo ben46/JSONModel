@@ -12,6 +12,22 @@
 #import "FMDBHelper.h"
 #import <FMDatabaseQueue.h>
 
+
+@protocol SubModel <NSObject>
+@end
+
+@interface SubModel : JSONModel
+
+@property (strong, nonatomic) NSNumber<JMPrimaryKey>       *ID;
+@property (strong, nonatomic) NSString       *name;
+
+@end
+
+@implementation SubModel
+@end
+
+#pragma mark -
+
 @interface TModel : JSONModel
 
 @property (strong, nonatomic) NSString<JMUnique>  *userName;
@@ -19,6 +35,7 @@
 @property (strong, nonatomic) NSString  *psw;
 @property (strong, nonatomic) NSNumber<JMPrimaryKey> *ID;
 @property (strong, nonatomic) NSDecimalNumber *groupID;
+@property (strong, nonatomic) NSArray<SubModel, ConvertOnDemand>       *list;
 
 @property (assign, nonatomic) NSInteger followerCount;
 @property (assign, nonatomic) int isVIP;
@@ -46,14 +63,25 @@
 //    self.navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
 //    self.window.rootViewController = self.navigationController;
     
-    TModel *model = [[TModel alloc] initWithDictionary:@{@"userName": @"zhou",
-                                                               @"psw":@"123",
-                                                               @"ID":@1,
-                                                               @"isVIP":@1,
-                                                               @"updateAt":@1234234,
-                                                               @"money":@11.1,
-                                                               @"followerCount": @3
-                                                               }
+    TModel *model = [[TModel alloc] initWithDictionary:@{
+                                                        @"userName": @"zhou",
+                                                        @"psw":@"123",
+                                                        @"ID":@1,
+                                                        @"isVIP":@1,
+                                                        @"updateAt":@1234234,
+                                                        @"money":@11.1,
+                                                        @"followerCount": @3,
+                                                        @"list":@[
+                                                                    @{
+                                                                        @"ID":@1,
+                                                                        @"name":@"hello i am #1"
+                                                                    },
+                                                                    @{
+                                                                        @"ID":@2,
+                                                                        @"name":@"i am #2"
+                                                                    }
+                                                                ]
+                                                       }
                                                        error:nil];
     [model JM_saveAsync:nil];
     

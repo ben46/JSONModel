@@ -36,6 +36,7 @@ static const char * kIndexPropertyNameKey;
 
 #pragma mark - class static variables
 static NSArray* allowedJSONTypes = nil;
+static NSArray* alowedSqliteTypes = nil;
 static NSArray* allowedPrimitiveTypes = nil;
 static JSONValueTransformer* valueTransformer = nil;
 static Class JSONModelClass = NULL;
@@ -63,6 +64,8 @@ static JSONKeyMapper* globalKeyMapper = nil;
                 [NSString class], [NSNumber class], [NSDecimalNumber class], [NSArray class], [NSDictionary class], [NSNull class], //immutable JSON classes
                 [NSMutableString class], [NSMutableArray class], [NSMutableDictionary class] //mutable JSON classes
             ];
+            
+            alowedSqliteTypes = @[[NSString class], [NSNumber class], [NSDecimalNumber class]];
             
             allowedPrimitiveTypes = @[
                 @"BOOL", @"float", @"int", @"long", @"double", @"short",
@@ -1374,6 +1377,8 @@ static JSONKeyMapper* globalKeyMapper = nil;
                     
                 }
                 
+            } else {
+                continue;
             }
             
         } else {
@@ -1567,16 +1572,19 @@ static JSONKeyMapper* globalKeyMapper = nil;
         JSONModelClassProperty* property = [prosNotNull objectAtIndex:i];
         if(property.isStandardJSONType) {
             
-            // ignore JSONModel Object
-            if (![self __isJSONModelSubClass:property.type]) {
+            // only parse the value can be stored in sqlite
+            if([alowedSqliteTypes containsObject:property.type]) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
                 id value = [self performSelector:NSSelectorFromString(property.name)];
 #pragma clang diagnostic pop
                 [valuesSql appendFormat:@"'%@'", value];
+            } else {
+                continue;
             }
-            
+
         } else {
+
             id objValue = nil;
             objValue = [self valueForKey: property.name];
             
