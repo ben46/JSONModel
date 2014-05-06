@@ -75,6 +75,8 @@ static NSString *const kJMFileNameDefaultDataBase = @"jm_default.db";
         FMResultSet *rsl = [adb executeQueryWithFormat:sql];
         if(block)
             block(nil, rsl);
+        [rsl close];
+        [adb close];
     }];
     
 #pragma clang diagnostic pop
