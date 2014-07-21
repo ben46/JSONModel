@@ -320,6 +320,12 @@ lastPathComponent], __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__] )
 -(void)mergeFromDictionary:(NSDictionary*)dict useKeyMapping:(BOOL)useKeyMapping;
 
 
+/**
+ *  传入表的版本, 建表的时候作为后缀, 以防以后数据库更迭(用下划线)
+ */
++ (NSString *)tableVersion;
+
+
 @end
 @class FMResultSet;
 

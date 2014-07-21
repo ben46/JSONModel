@@ -1431,8 +1431,14 @@ static JSONKeyMapper* globalKeyMapper = nil;
 
 + (NSString *)__tableName
 {
-    return NSStringFromClass([self class]);
+    return [NSString stringWithFormat:@"%@%@", NSStringFromClass([self class]), [self tableVersion]];
 }
+
++ (NSString *)tableVersion;
+{
+    return @"";
+}
+
 
 #pragma mark - query help
 
