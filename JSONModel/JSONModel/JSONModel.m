@@ -1261,6 +1261,11 @@ static JSONKeyMapper* globalKeyMapper = nil;
     return NO;
 }
 
++ (NSString *)tableVersion;
+{
+    return @"";
+}
+
 #pragma mark - working with incomplete models
 -(void)mergeFromDictionary:(NSDictionary*)dict useKeyMapping:(BOOL)useKeyMapping
 {
@@ -1434,12 +1439,6 @@ static JSONKeyMapper* globalKeyMapper = nil;
     return [NSString stringWithFormat:@"%@%@", NSStringFromClass([self class]), [self tableVersion]];
 }
 
-+ (NSString *)tableVersion;
-{
-    return @"";
-}
-
-
 #pragma mark - query help
 
 + (NSArray *)JM_arrayFromResultSet:(FMResultSet *)rs
@@ -1477,7 +1476,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
 
 + (instancetype)JM_findFirstWhereRaw:(NSString *)sqlRaw;
 {
-    NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", NSStringFromClass([self class]), sqlRaw];
+    NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", [self __tableName], sqlRaw];
     FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
     return [self JM_objectFromResultSet:rs];
 }
@@ -1537,7 +1536,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
 
 + (NSArray *)JM_whereRaw:(NSString *)sqlRaw;
 {
-    NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", NSStringFromClass([self class]), sqlRaw];
+    NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", [self __tableName], sqlRaw];
     FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
     return [self JM_arrayFromResultSet:rs];
 }
