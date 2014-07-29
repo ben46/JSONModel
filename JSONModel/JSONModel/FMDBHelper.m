@@ -83,6 +83,25 @@ static NSString *const kJMFileNameDefaultDataBase = @"jm_default.db";
  
 }
 
+- (BOOL)JM_executeStatements:(NSString *)sql{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+    BOOL ret = [self executeStatements:sql];
+    return ret;
+#pragma clang diagnostic pop
+    
+}
+
+- (BOOL)JM_executeStatements:(NSString *)sql block:(FMDBExecuteStatementsCallbackBlock)block
+{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+    BOOL ret = [self executeStatements:sql withResultBlock:block];
+    return ret;
+#pragma clang diagnostic pop
+    
+}
+
 - (BOOL)JM_executeUpdate:(NSString*)sql;
 {
 #pragma clang diagnostic push

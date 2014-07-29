@@ -1441,22 +1441,48 @@ static JSONKeyMapper* globalKeyMapper = nil;
 
 #pragma mark - query help
 
++ (NSDictionary *)_convertDictForDisplay:(NSDictionary *)inDict{
+    
+    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:inDict];
+    NSArray *keys = [dict allKeys];// 所有key
+    for(int i=0;i<[keys count];i++){
+        NSString *key = [keys objectAtIndex:i];
+        id value = [dict objectForKey:key];
+        if([value isKindOfClass:[NSString class]]) {
+            NSString *newValue = [[self class] _decodeFromPercentEscapeString:value];
+            [dict setValue:newValue forKey:key];
+        }
+    }
+    
+    return dict;
+}
+
+/**
+ *  解析查询结果(多条)
+ */
 + (NSArray *)JM_arrayFromResultSet:(FMResultSet *)rs
 {
     NSMutableArray *list = [NSMutableArray array];
     
     while([rs next]) {
-        id model =[[[self class] alloc] initWithDictionary:[rs resultDictionary] error:nil];
+        
+        NSDictionary *dict = [self _convertDictForDisplay:[rs resultDictionary]];
+        id model =[[[self class] alloc] initWithDictionary:dict error:nil];
         [list addObject:model];
     }
     
     return list;
 }
 
+/**
+ *  解析单条查询结果
+ */
 + (instancetype)JM_objectFromResultSet:(FMResultSet *)rs
 {
     while([rs next]) {
-        id model =[[[self class] alloc] initWithDictionary:[rs resultDictionary] error:nil];
+        NSDictionary *dict = [self _convertDictForDisplay:[rs resultDictionary]];
+
+        id model =[[[self class] alloc] initWithDictionary:dict error:nil];
         return model;
     }
     return nil;
@@ -1534,6 +1560,9 @@ static JSONKeyMapper* globalKeyMapper = nil;
     return [self JM_whereRaw:sql];
 }
 
+/**
+ *  跟上where
+ */
 + (NSArray *)JM_whereRaw:(NSString *)sqlRaw;
 {
     NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", [self __tableName], sqlRaw];
@@ -1543,27 +1572,53 @@ static JSONKeyMapper* globalKeyMapper = nil;
 
 #pragma mark - insert & update
 
-// zq.zhou@tuobian.cn
+/**
+ *  使用replace保存
+ */
 - (BOOL)JM_save;
 {
+    
     [self JM_createTableIfNeeded];
     NSString *sql = [self __saveSql];
     
-    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
+    return [[FMDBHelper sharedInstance] JM_executeStatements:sql];
+    
 }
 
-// zq.zhou@tuobian.cn
+/**
+ *  异步保存
+ */
 - (void)JM_saveAsync:(JMCompletionBlock)block;
 {
+    
     [self JM_createTableIfNeeded];
     NSString *sql = [self __saveSql];
-    __block JMCompletionBlock blockCp = [block copy];
+//    __block JMCompletionBlock blockCp = [block copy];
+    [[FMDBHelper sharedInstance] JM_executeStatements:sql block:nil];
     
-    [[FMDBHelper sharedInstance] JM_executeUpdate:sql block:^(NSError *err, id rsl){
-        if(blockCp) {
-            blockCp(nil);
-        }
-    }];
+}
+
++ (NSString *)_urlEncodeValue:(NSString *)str
+{
+    NSString *string = (NSString *)
+    CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(NULL,
+                                            (CFStringRef) str,
+                                            NULL,
+                                            (CFStringRef) @"!*'();:@&=+$,/?%#[]",
+                                            kCFStringEncodingUTF8));
+    
+    return string;
+    
+}
+
+
+// Decode a percent escape encoded string.
++ (NSString*) _decodeFromPercentEscapeString:(NSString *)string {
+    return (NSString *)
+    CFBridgingRelease(CFURLCreateStringByReplacingPercentEscapesUsingEncoding(NULL,
+                                                            (CFStringRef) string,
+                                                            CFSTR(""),
+                                                            kCFStringEncodingUTF8));
 }
 
 // get save sql
@@ -1582,7 +1637,13 @@ static JSONKeyMapper* globalKeyMapper = nil;
             if([alowedSqliteTypes containsObject:property.type]) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-                id value = [self performSelector:NSSelectorFromString(property.name)];
+                id value = nil;
+                if([property.type isSubclassOfClass:[NSString class]]) {
+                    NSString *tmpValue =[self performSelector:NSSelectorFromString(property.name)];
+                    value = [[self class] _urlEncodeValue:tmpValue];
+                } else {
+                    value = [self performSelector:NSSelectorFromString(property.name)];
+                }
 #pragma clang diagnostic pop
                 [valuesSql appendFormat:@"'%@'", value];
             } else {
@@ -1614,7 +1675,8 @@ static JSONKeyMapper* globalKeyMapper = nil;
     }
     
     NSString *sql = [NSString stringWithFormat:@"replace into %@ (%@) values (%@)", [[self class] __tableName], keysSql, valuesSql];
-    
+    NSLog(@"%@", sql);
+
     return sql;
 }
 

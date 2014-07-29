@@ -21,5 +21,7 @@ typedef void(^FMDBCompletionBlock)(NSError *err, FMResultSet* rsl);
 - (BOOL)JM_executeUpdate:(NSString*)sql;
 - (void)JM_executeUpdate:(NSString*)sql block:(FMDBCompletionBlock)block;
 
+- (BOOL)JM_executeStatements:(NSString *)sql;
+- (BOOL)JM_executeStatements:(NSString *)sql block:(FMDBExecuteStatementsCallbackBlock)block;
 
 @end
