@@ -88,6 +88,8 @@
     TModel *model1 = [TModel JM_find:@1];
     NSLog(@"%@", [model1 toDictionary]);
 
+    [FMDBHelper deleteDataBaseFile];
+    
     [self.window makeKeyAndVisible];
     
     
