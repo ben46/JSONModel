@@ -31,6 +31,21 @@ static NSString *const kJMFileNameDefaultDataBase = @"jm_default.db";
     return sharedInstance;
 }
 
+/**
+ *  删除数据库文件
+ */
++ (void)deleteDataBaseFile
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *dataPath = [[self __documentsDir] stringByAppendingPathComponent:kJMFileNameDefaultDataBase];
+    NSError *error;
+    BOOL success = [fileManager removeItemAtPath:dataPath error:&error];
+    if (!success) {
+        NSLog(@"Could not delete %@ database file -:%@ ", kJMFileNameDefaultDataBase, [error localizedDescription]);
+    }
+    
+}
+
 - (void)dealloc
 {
     [self close];

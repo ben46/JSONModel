@@ -15,6 +15,11 @@ typedef void(^FMDBCompletionBlock)(NSError *err, FMResultSet* rsl);
 
 + (instancetype)sharedInstance;
 
+/**
+ *  删除数据库文件
+ */
++ (void)deleteDataBaseFile;
+
 - (FMResultSet *)JM_executeQuery:(NSString*)sql;
 - (void)JM_executeQuery:(NSString*)sql block:(FMDBCompletionBlock)block;
 
