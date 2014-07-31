@@ -1,1 +1,1 @@
-pod 'FMDB'
+pod 'FMDB', '~> 2.3'
