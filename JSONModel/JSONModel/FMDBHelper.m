@@ -21,13 +21,17 @@ static NSString *const kJMFileNameDefaultDataBase = @"jm_default.db";
 
 @implementation FMDBHelper
 
+static id sharedInstance = nil;
+
 + (instancetype)sharedInstance;
 {
-    static id sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedInstance = [[self alloc] init];
     });
+    if(!sharedInstance) {
+        sharedInstance = [[self alloc] init];
+    }
     return sharedInstance;
 }
 
@@ -36,6 +40,10 @@ static NSString *const kJMFileNameDefaultDataBase = @"jm_default.db";
  */
 + (void)deleteDataBaseFile
 {
+
+    [[FMDBHelper sharedInstance] close];
+    sharedInstance = nil;
+
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *dataPath = [[self __documentsDir] stringByAppendingPathComponent:kJMFileNameDefaultDataBase];
     NSError *error;
