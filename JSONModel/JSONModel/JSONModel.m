@@ -1656,8 +1656,12 @@ static JSONKeyMapper* globalKeyMapper = nil;
             objValue = [self valueForKey: property.name];
             
             if([property.structName isEqualToString:@"BOOL"]) {
-                BOOL value = [self valueForKey:property.name];
-                [valuesSql appendFormat:@"'%d'", value];
+                BOOL value = (BOOL)[self valueForKey:property.name];
+                if(value) {
+                    [valuesSql appendFormat:@"'%d'", 1];
+                } else {
+                    [valuesSql appendFormat:@"'%d'", 0];
+                }
             } else {
                 NSNumber *value = [self valueForKey:property.name];
                 [valuesSql appendFormat:@"'%@'", value];
