@@ -1,6 +1,6 @@
 ## JSONModel integrate with sqlite3
 
-This is this a framework which can be easily used to *json modelling* and *sqlite CRUD*.
+This is this a framework which can be easily used for *json modelling* and *sqlite CRUD*.
 
 The whole project is base on the two famous framework in objc: [JSONModel](https://github.com/icanzilb/JSONModel) and [FMDB](https://github.com/ccgus/fmdb).
 
