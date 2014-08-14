@@ -44,6 +44,35 @@ static Class JSONModelClass = NULL;
 #pragma mark - model cache
 static JSONKeyMapper* globalKeyMapper = nil;
 
+
+
+@implementation NSString (JSONModelEncode)
+
+- (NSString *)JM_URLEncodeValue
+{
+    NSString *string = (NSString *)
+    CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(NULL,
+                                                              (CFStringRef) self,
+                                                              NULL,
+                                                              (CFStringRef) @"!*'();:@&=+$,/?%#[]",
+                                                              kCFStringEncodingUTF8));
+    
+    return string;
+    
+}
+
+// Decode a percent escape encoded string.
+- (NSString*) JM_decodeFromPercentEscapeString
+{
+    return (NSString *)
+    CFBridgingRelease(CFURLCreateStringByReplacingPercentEscapesUsingEncoding(NULL,
+                                                                              (CFStringRef) self,
+                                                                              CFSTR(""),
+                                                                              kCFStringEncodingUTF8));
+}
+
+@end
+
 #pragma mark - JSONModel implementation
 @implementation JSONModel
 {
@@ -1449,7 +1478,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
         NSString *key = [keys objectAtIndex:i];
         id value = [dict objectForKey:key];
         if([value isKindOfClass:[NSString class]]) {
-            NSString *newValue = [[self class] _decodeFromPercentEscapeString:value];
+            NSString *newValue = [value JM_decodeFromPercentEscapeString];
             [dict setValue:newValue forKey:key];
         }
     }
@@ -1553,9 +1582,9 @@ static JSONKeyMapper* globalKeyMapper = nil;
     NSString *sql = nil;
     
     if (orderby) {
-        sql = [NSString stringWithFormat:@"where %@ %@ '%@' order by %@", opr, colName, value, orderby];
+        sql = [NSString stringWithFormat:@"where `%@` %@ '%@' order by `%@`", colName, opr, value, orderby];
     } else {
-        sql = [NSString stringWithFormat:@"where %@ %@ '%@'", opr, colName, value];
+        sql = [NSString stringWithFormat:@"where `%@` %@ '%@'", colName, opr, value];
     }
     return [self JM_whereRaw:sql];
 }
@@ -1598,29 +1627,6 @@ static JSONKeyMapper* globalKeyMapper = nil;
     
 }
 
-+ (NSString *)_urlEncodeValue:(NSString *)str
-{
-    NSString *string = (NSString *)
-    CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(NULL,
-                                            (CFStringRef) str,
-                                            NULL,
-                                            (CFStringRef) @"!*'();:@&=+$,/?%#[]",
-                                            kCFStringEncodingUTF8));
-    
-    return string;
-    
-}
-
-
-// Decode a percent escape encoded string.
-+ (NSString*) _decodeFromPercentEscapeString:(NSString *)string {
-    return (NSString *)
-    CFBridgingRelease(CFURLCreateStringByReplacingPercentEscapesUsingEncoding(NULL,
-                                                            (CFStringRef) string,
-                                                            CFSTR(""),
-                                                            kCFStringEncodingUTF8));
-}
-
 // get save sql
 - (NSString *)__saveSql;
 {
@@ -1640,7 +1646,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
                 id value = nil;
                 if([property.type isSubclassOfClass:[NSString class]]) {
                     NSString *tmpValue =[self performSelector:NSSelectorFromString(property.name)];
-                    value = [[self class] _urlEncodeValue:tmpValue];
+                    value = [tmpValue JM_URLEncodeValue];
                 } else {
                     value = [self performSelector:NSSelectorFromString(property.name)];
                 }

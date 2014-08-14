@@ -461,5 +461,15 @@ typedef void(^JMCompletionBlock)(id result);
  *  @return YES: success; NO: errer occured
  */
 + (BOOL)JM_deleteWhereRaw:(NSString *)sqlRaw;
+/**
+ *  解析查询结果(多条)
+ */
++ (NSArray *)JM_arrayFromResultSet:(FMResultSet *)rs;
+
+@end
+
+@interface NSString (JSONModelEncode)
+- (NSString *)JM_URLEncodeValue;
+- (NSString*) JM_decodeFromPercentEscapeString;
 
 @end

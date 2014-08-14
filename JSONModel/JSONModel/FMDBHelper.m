@@ -83,8 +83,10 @@ static id sharedInstance = nil;
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    FMResultSet *rsl = [self executeQueryWithFormat:sql];
+    
+    FMResultSet *rsl = [self executeQuery:sql];
     return rsl;
+    
 #pragma clang diagnostic pop
 }
 
