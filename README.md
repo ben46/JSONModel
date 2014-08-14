@@ -81,6 +81,15 @@ NSLog(@"%@", [countryYouJustSaved toDictionary]);
 
 ```
 
+
+------------------------------------
+Known issue & TO-DO List
+====================================
+
+* `BOOL` properties can not be stored(please use NSInteger instead)
+* store NSArray of JSONModel(batch store using block running in background thread)
+
+
 -------
 
 Misc
