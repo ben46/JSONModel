@@ -1,4 +1,4 @@
-## JSONModel integrate with sqlite3
+## JSONModel parsing & sqlite CRUD
 
 Coredata 太难用了, 于是我写了这个框架, 搞定 json 解析&数据的增删改查
 
