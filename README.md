@@ -16,6 +16,14 @@ JSONModel是用来解析json的一个库, 解析json完成之后, 我们需要�
 
 于是我写了这个框架, 融合了json解析, 巨简单的sqlite增删改查.
 
+###包含几个功能
+
+* 根据json里面的key的名字来命名oc中property的名字, 这样就能根据json自动解析成oc model
+* 无需手动建立数据库, 自动根据model的property的名字建表.
+* 插入一条数据只需一行代码
+* 查表的时候只用一行代码
+* 如有model更新, 只需在model中重写tableVersion方法即可.
+
 ----
 
 This is this a framework which can be easily used for *json modelling* and *sqlite CRUD*.
@@ -78,9 +86,12 @@ define your data model:
 
 ```objective-c
 @interface ProductModel : JSONModel
+
+// JMPrimaryKey代表这个property就是主键
 @property (assign, nonatomic) NSNumber<JMPrimaryKey> *ID;
 @property (strong, nonatomic) NSString* name;
 @property (assign, nonatomic) float price;
+
 @end
 ```
 
@@ -97,12 +108,20 @@ NSString* json = (fetch here JSON from Internet) ...
 NSError* err = nil;
 
 ProductModel* product = [[ProductModel alloc] initWithString:json error:&err];
- // automatically create table && save to database
+// automatically create table && save to database
+// 自动建数据库 & 自动建表 & 自动保存到数据库
 [product JM_save];
 
 // find the value matches the primary key
+// 根据主键查表
 ProductModel* productYouJustSaved = [ProductModel JM_find:@1]; 
 NSLog(@"%@", [countryYouJustSaved toDictionary]);
+
+// 根据条件查表
+ProductModel* productYouJustSaved = [ProductModel JM_whereCol:@"name" isEqualTo:@"Product name"];
+
+// 以及排序等等诸多功能...
+
 
 ```
 
@@ -112,7 +131,8 @@ Known issue & TO-DO List
 ====================================
 
 * `BOOL` properties can not be stored(please use NSInteger instead)
-* store NSArray of JSONModel(batch store using block running in background thread)
+* `BOOL` 类型暂时无法储存, 请使用NSInteger代替
+* 防止sql注入
 
 
 -------
