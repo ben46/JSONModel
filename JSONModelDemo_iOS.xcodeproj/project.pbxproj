@@ -16,8 +16,6 @@
 		9C55AF0718903127004EBD8A /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C55AF0618903127004EBD8A /* CoreData.framework */; };
 		9C55AF0E18903300004EBD8A /* ReposModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CFDD0C5176E977C007B7DFA /* ReposModel.m */; };
 		9C55AF0F189033AE004EBD8A /* GitHubRepoModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CFDD0B3176E977C007B7DFA /* GitHubRepoModel.m */; };
-		9C55AF1818903ADA004EBD8A /* JSONModel+CoreData.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C55AF1718903ADA004EBD8A /* JSONModel+CoreData.m */; };
-		9C55AF1918903ADA004EBD8A /* JSONModel+CoreData.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C55AF1718903ADA004EBD8A /* JSONModel+CoreData.m */; };
 		9C66DFA8168CEF420015CCDF /* ArrayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C66DF60168CEF420015CCDF /* ArrayTests.m */; };
 		9C66DFA9168CEF420015CCDF /* BuiltInConversionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C66DF62168CEF420015CCDF /* BuiltInConversionsTests.m */; };
 		9C66DFAB168CEF420015CCDF /* CustomPropsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C66DF66168CEF420015CCDF /* CustomPropsTests.m */; };
@@ -138,8 +136,6 @@
 		697852FC17D934B5006BFCD0 /* nestedDataWithTypeMismatchOnImages.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = nestedDataWithTypeMismatchOnImages.json; sourceTree = "<group>"; };
 		697852FE17D93546006BFCD0 /* nestedDataWithTypeMismatchOnImagesObject.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = nestedDataWithTypeMismatchOnImagesObject.json; sourceTree = "<group>"; };
 		9C55AF0618903127004EBD8A /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		9C55AF1618903ADA004EBD8A /* JSONModel+CoreData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "JSONModel+CoreData.h"; sourceTree = "<group>"; };
-		9C55AF1718903ADA004EBD8A /* JSONModel+CoreData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "JSONModel+CoreData.m"; sourceTree = "<group>"; };
 		9C66DF5F168CEF420015CCDF /* ArrayTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArrayTests.h; sourceTree = "<group>"; };
 		9C66DF60168CEF420015CCDF /* ArrayTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArrayTests.m; sourceTree = "<group>"; };
 		9C66DF61168CEF420015CCDF /* BuiltInConversionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BuiltInConversionsTests.h; sourceTree = "<group>"; };
@@ -405,8 +401,6 @@
 			children = (
 				CB7B424C1911F9730016D651 /* FMDBHelper.h */,
 				CB7B424D1911F9730016D651 /* FMDBHelper.m */,
-				9C55AF1618903ADA004EBD8A /* JSONModel+CoreData.h */,
-				9C55AF1718903ADA004EBD8A /* JSONModel+CoreData.m */,
 				9C66E00C168CF0AA0015CCDF /* JSONModel.h */,
 				9C66E00D168CF0AA0015CCDF /* JSONModel.m */,
 				9C66E00E168CF0AA0015CCDF /* JSONModelArray.h */,
@@ -747,7 +741,6 @@
 			files = (
 				9CBBBEE9166B6CF0008B4326 /* main.m in Sources */,
 				9CBBBEED166B6CF0008B4326 /* AppDelegate.m in Sources */,
-				9C55AF1818903ADA004EBD8A /* JSONModel+CoreData.m in Sources */,
 				9C55AF0F189033AE004EBD8A /* GitHubRepoModel.m in Sources */,
 				9C55AF0E18903300004EBD8A /* ReposModel.m in Sources */,
 				CB003AAC19C3EB090079CFF2 /* MasterViewController.m in Sources */,
@@ -810,7 +803,6 @@
 				9CFDD0D0176E977C007B7DFA /* GitHubRepoModel.m in Sources */,
 				9CFDD0D1176E977C007B7DFA /* GitHubRepoModelForUSMapper.m in Sources */,
 				9CFDD0D2176E977C007B7DFA /* ImageModel.m in Sources */,
-				9C55AF1918903ADA004EBD8A /* JSONModel+CoreData.m in Sources */,
 				9CFDD0D3176E977C007B7DFA /* JSONTypesModel.m in Sources */,
 				9CFDD0D4176E977C007B7DFA /* NestedModel.m in Sources */,
 				9CFDD0D5176E977C007B7DFA /* OptionalPropModel.m in Sources */,
