@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   s.author       = { "Marin Todorov" => "touch-code-magazine@underplot.com",
                      "Zhuoqian Zhou" => "ben02060846@gmail.com"}
 
-  s.source       = { :git => "https://github.com/ben46/JSONModel.git", :tag => "v#{s.version}@ben46" }
+  s.source       = { :git => "https://github.com/ben46/JSONModel.git", :tag => "#{s.version}@ben46" }
 
   s.ios.deployment_target = '5.0'
 
