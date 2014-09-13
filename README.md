@@ -69,10 +69,14 @@ If you want to read more about CocoaPods, have a look at [this short tutorial](h
 
 Examples
 =======
+----
 
-#### Automatic name based mapping
+#Example #1基础教程 basics
 
-JSON from Internet:
+
+#### Automatic name based mapping(基于变量名的自动映射)
+
+JSON from Internet(服务器端传回的json):
 
 ```javascript
 {
@@ -82,7 +86,7 @@ JSON from Internet:
 }
 ```
 
-define your data model:
+define your data model(定义你的数据模型):
 
 ```objective-c
 @interface ProductModel : JSONModel
@@ -95,9 +99,7 @@ define your data model:
 @end
 ```
 
-
-some where in your code :
-
+some where in your code (某个你的代码处):
 
 
 ```objective-c
@@ -125,12 +127,188 @@ ProductModel* productYouJustSaved = [ProductModel JM_whereCol:@"name" isEqualTo:
 
 ```
 
+#Example #2定义model define your model
+如果你有一个很长的字段`description`储存了超过100字节的内容, 你可以使用`<JMText>`定义你的`property`
+
+if your property stores more than 100 bytes' content, you can use `<JMText>` to define your `property`
+
+```objective-c
+@interface ProductModel : JSONModel
+
+// JMPrimaryKey代表这个property就是主键
+@property (assign, nonatomic) NSNumber<JMPrimaryKey> *ID;
+@property (strong, nonatomic) NSString<JMText>* description;
+
+@end
+```
+
+
+诸如此类的还有很多, 比如: 
+there are many more like this: 
+
+* JMPrimaryKey(主键)
+* JMNotNull(不为空)
+* JMUnique(唯一值)
+* JMText(长字节)
+* Ignore(不存储这个变量)
+
+**1. 特别注意**, 现在不支持`BOOL`的存储, 如果你要存储`BOOL`, 请使用NSInteger代替. 
+
+(We do not have `BOOL` support yet, if you has `BOOL` property, please use NSInteger instead)
+
+**2. 特别注意**, 现在不支持`NSArray`的存储, 如果你要存储`NSArray`, 以下是我的方法. 
+
+(We do not have `NSArray ` support yet, if you has `NSArray ` property, please use the following way)
+
+```objective-c
+
+// 朋友圈回复
+@interface MomentReply : JSONModel
+@property (copy, nonatomic) NSString<JMPrimaryKey>       *ID;
+@property (copy, nonatomic) NSString       *momentID;
+@end
+
+// 某一条朋友圈
+@interface Moment : JSONModel
+@property (nonatomic,   copy) NSNumber<JMPrimaryKey> *ID;
+@property (nonatomic,   strong) NSArray<Ignore>        *replyList; // 回复列表
+@end
+
+@implementation Moment
+
+- (NSArray *)replyList{
+    if(!_replyList) {
+        _replyList = [MomentReply JM_where:[NSString stringWithFormat:@"`momentID ` = %@", self.ID]];
+    }
+    return _replyList;
+}
+
+@end
+```
+**3. 特别注意**, 现在不支持`自定义类型`的存储.
+
+(We do not have `custom class defined property` support yet)
+
+
+#Example #3插入数据 insert/save record
+
+
+```objective-c
+
+NSString* json = (fetch here JSON from Internet) ... 
+NSError* err = nil;
+ProductModel* product = [[ProductModel alloc] initWithString:json error:&err];
+// automatically create table && save to database
+// 自动建数据库 & 自动建表 & 自动保存到数据库
+[product JM_save];
+```
+
+#Example #4更新/修改数据 update record
+
+
+```objective-c
+
+NSString* json = (fetch here JSON from Internet) ... 
+NSError* err = nil;
+ProductModel* product = [[ProductModel alloc] initWithString:json error:&err];
+// automatically create table && save to database
+// 如果主键相同, 则会自动替代原来表中的数据
+// if their primary keys are equal, the old record will be replaced
+[product JM_save];
+```
+
+#Example #5查表 find records
+根据主键查找单条数据
+
+find one the record with primary key.
+
+```objective-c
+ProductModel* product = [ProductModel JM_find:@(1)];
+```
+
+根据sql条件查找单条数据
+
+find one the record with condition.
+
+```objective-c
+ProductModel* product = [ProductModel JM_findFirstWithRaw:@"where `ID` = 1"];
+```
+
+查找该表中的全部
+
+find the all the records.
+
+```objective-c
+NSArray *list = [ProductModel JM_all];
+```
+
+根据sql条件查找该表中多条数据
+
+find the records which's ID is greater than 10.
+
+```objective-c
+NSArray *list = [ProductModel JM_where:@"`ID` > 10"];
+```
+
+查找表中ID比1大的数据, 按照ID倒序排列
+
+find the records which's ID is greater than 10 and order by id descend.
+
+```objective-c
+NSArray *list = [ProductModel JM_whereCol:@"`ID`" isGreaterThan:@10 orderBy:@"`ID` DESC"];
+```
+
+查找表中ID比10大的数据, 按照ID倒序排列
+
+find the records which's ID is greater than 10 and order by id descend.
+
+```objective-c
+NSArray *list = [ProductModel JM_findRaw:@"where `ID` > 10 ORDER BY `ID` DESC"];
+```
+
+#Example #6删除数据 delete records
+
+删除单条数据
+
+detele one record
+
+```objective-c
+BOOL suc = [someProduct JM_delete];
+```
+
+删除表中ID比10大的数据
+
+delete mutiple records with conditions
+
+```objective-c
+BOOL suc = [ProductModel JM_deleteWhereRaw:@"`ID` > 10"];
+```
+
+#Example #7数据表版本控制 records table version control
+
+如果你的model在下个版本中发生了变化, 你可以重写静态方法`+ (NSString *)tableVersion;
+`, 根据`tableVersion `的不同会生成不同的表. 
+
+If your model has been changed, the old table can not be used any more, you have to rewrite the `tableVersion` method.
+
+```objective-c
+@implementation ProductModel
+
++ (NSString *)tableVersion;
+{
+    return @"1_0_1_0";
+}
+
+@end
+```
+
 
 ------------------------------------
 Known issue & TO-DO List
 ====================================
 
 * `BOOL` properties can not be stored(please use NSInteger instead)
+* sql injection
 * `BOOL` 类型暂时无法储存, 请使用NSInteger代替
 * 防止sql注入
 

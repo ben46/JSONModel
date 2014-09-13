@@ -1529,6 +1529,13 @@ static JSONKeyMapper* globalKeyMapper = nil;
     return [self JM_objectFromResultSet:rs];
 }
 
++ (instancetype)JM_findFirstWithRaw:(NSString *)sqlRaw;
+{
+    NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", [self __tableName], sqlRaw];
+    FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
+    return [self JM_objectFromResultSet:rs];
+}
+
 + (instancetype)JM_findFirstWhereRaw:(NSString *)sqlRaw;
 {
     NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", [self __tableName], sqlRaw];
