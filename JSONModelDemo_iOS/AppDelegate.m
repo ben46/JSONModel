@@ -7,7 +7,7 @@
 //
 
 #import "AppDelegate.h"
-//#import "MasterViewController.h"
+#import "MasterViewController.h"
 #import "JSONModel.h"
 #import "FMDBHelper.h"
 #import <FMDatabaseQueue.h>
@@ -59,9 +59,9 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
 
-//    MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController" bundle:nil];
-//    self.navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
-//    self.window.rootViewController = self.navigationController;
+    MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController" bundle:nil];
+    self.navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
+    self.window.rootViewController = self.navigationController;
     
     TModel *model = [[TModel alloc] initWithDictionary:@{
                                                         @"userName": @"zhou",

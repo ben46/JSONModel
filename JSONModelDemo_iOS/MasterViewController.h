@@ -1,12 +1,13 @@
 //
 //  MasterViewController.h
-//  JSONModelDemo
+//  JSONModelDemo_iOS
 //
-//  Created by Marin Todorov on 02/12/2012.
-//  Copyright (c) 2012 Underplot ltd. All rights reserved.
+//  Created by Zhouzhuoqian https://github.com/ben46 on 14-9-13.
+//  Copyright (c) 2014年 Zhuoqian Zhou ltd. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
 
-@interface MasterViewController : UITableViewController
+@interface MasterViewController : UIViewController
+
 @end
