@@ -1538,13 +1538,13 @@ static JSONKeyMapper* globalKeyMapper = nil;
 
 + (NSArray *)JM_all
 {
-    return [self JM_whereRaw:@""];
+    return [self JM_findRaw:@""];
 }
 
 + (NSArray *)JM_allOrderBy:(NSString *)orderby;
 {
     NSString *sql = [NSString stringWithFormat:@" order by %@", orderby];
-    return [self JM_whereRaw:sql];
+    return [self JM_findRaw:sql];
 }
 
 + (NSArray *)JM_whereCol:(NSString *)colName isGreaterThan:(id)value;
@@ -1586,18 +1586,30 @@ static JSONKeyMapper* globalKeyMapper = nil;
     } else {
         sql = [NSString stringWithFormat:@"where `%@` %@ '%@'", colName, opr, value];
     }
-    return [self JM_whereRaw:sql];
+    return [self JM_findRaw:sql];
 }
 
-/**
- *  跟上where
- */
 + (NSArray *)JM_whereRaw:(NSString *)sqlRaw;
 {
     NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", [self __tableName], sqlRaw];
     FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
     return [self JM_arrayFromResultSet:rs];
 }
+
++ (NSArray *)JM_where:(NSString *)sqlRaw;
+{
+    NSString *sql = [NSString stringWithFormat:@"select * from %@ where %@", [self __tableName], sqlRaw];
+    FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
+    return [self JM_arrayFromResultSet:rs];
+}
+
++ (NSArray *)JM_findRaw:(NSString *)sqlRaw;
+{
+    NSString *sql = [NSString stringWithFormat:@"select * from %@ %@", [self __tableName], sqlRaw];
+    FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
+    return [self JM_arrayFromResultSet:rs];
+}
+
 
 #pragma mark - insert & update
 

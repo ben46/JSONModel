@@ -426,10 +426,28 @@ typedef void(^JMCompletionBlock)(id result);
  *  Custom condition
  *
  *  @param sqlRaw sql statement
- *
+ *  不包含了where, 需要手动加上
  *  @return result array
  */
-+ (NSArray *)JM_whereRaw:(NSString *)sqlRaw;
++ (NSArray *)JM_whereRaw:(NSString *)sqlRaw __attribute__((deprecated));
+
+/**
+ *  Custom condition
+ *
+ *  @param sqlRaw sql statement
+ *  包含了where
+ *  @return result array
+ */
++ (NSArray *)JM_where:(NSString *)sqlRaw;
+
+/**
+ *  Custom condition
+ *
+ *  @param sqlRaw sql statement
+ *  不包含了where, 需要手动加上
+ *  @return result array
+ */
++ (NSArray *)JM_findRaw:(NSString *)sqlRaw;
 
 /**
  *  Save data model in sqlite
@@ -457,6 +475,7 @@ typedef void(^JMCompletionBlock)(id result);
  *  Delete data from table which matches the condition you gave
  *  Example #1: `ID = '1'`
  *  @param sqlRaw condition
+ *  已经包含了where, 无需再加where
  *
  *  @return YES: success; NO: errer occured
  */
