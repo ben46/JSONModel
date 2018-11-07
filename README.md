@@ -92,8 +92,8 @@ define your data model(定义你的数据模型):
 @interface ProductModel : JSONModel
 
 // JMPrimaryKey代表这个property就是主键
-@property (assign, nonatomic) NSNumber<JMPrimaryKey> *ID;
-@property (strong, nonatomic) NSString* name;
+@property (strong, nonatomic) NSNumber<JMPrimaryKey> *ID;
+@property (copy, nonatomic) NSString* name;
 @property (assign, nonatomic) float price;
 
 @end
@@ -136,8 +136,8 @@ if your property stores more than 100 bytes' content, you can use `<JMText>` to 
 @interface ProductModel : JSONModel
 
 // JMPrimaryKey代表这个property就是主键
-@property (assign, nonatomic) NSNumber<JMPrimaryKey> *ID;
-@property (strong, nonatomic) NSString<JMText>* description;
+@property (strong, nonatomic) NSNumber<JMPrimaryKey> *ID;
+@property (copy, nonatomic) NSString<JMText>* description;
 
 @end
 ```
@@ -170,8 +170,8 @@ there are many more like this:
 
 // 某一条朋友圈
 @interface Moment : JSONModel
-@property (nonatomic,   copy) NSNumber<JMPrimaryKey> *ID;
-@property (nonatomic,   strong) NSArray<Ignore>        *replyList; // 回复列表
+@property (nonatomic,   strong) NSNumber<JMPrimaryKey> *ID;
+@property (nonatomic,   copy) NSArray<Ignore>        *replyList; // 回复列表
 @end
 
 @implementation Moment
