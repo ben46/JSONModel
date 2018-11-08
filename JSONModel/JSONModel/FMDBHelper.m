@@ -29,9 +29,6 @@ static id sharedInstance = nil;
     dispatch_once(&onceToken, ^{
         sharedInstance = [[self alloc] init];
     });
-    if(!sharedInstance) {
-        sharedInstance = [[self alloc] init];
-    }
     return sharedInstance;
 }
 
