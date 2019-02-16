@@ -11,7 +11,9 @@
 #import "JSONModel.h"
 
 
-@interface FMDBHelper ()
+@interface FMDBHelper (){
+    dispatch_queue_t _serialQueue;
+}
 
 @property (strong, nonatomic) NSString       *dbPath;
 
@@ -58,6 +60,7 @@ static id sharedInstance = nil;
 
 - (id)init
 {
+    _serialQueue = dispatch_queue_create("com.zqnetwork", DISPATCH_QUEUE_SERIAL);
     NSString *dataPath = [[[self class] __documentsDir] stringByAppendingPathComponent:kJMFileNameDefaultDataBase];
     self = [[self class] databaseWithPath:dataPath];
     self.dbPath = dataPath;
@@ -78,29 +81,25 @@ static id sharedInstance = nil;
 
 - (FMResultSet *)JM_executeQuery:(NSString*)sql;
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
-    
-    FMResultSet *rsl = [self executeQuery:sql];
+//#pragma clang diagnostic push
+//#pragma clang diagnostic ignored "-Wformat-nonliteral"
+    __block FMResultSet *rsl = nil;
+    dispatch_sync(_serialQueue, ^{
+        rsl = [self executeQuery:sql];
+    });
     return rsl;
-    
-#pragma clang diagnostic pop
+//#pragma clang diagnostic pop
 }
 
 - (void)JM_executeQuery:(NSString*)sql block:(FMDBCompletionBlock)block;
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-
-    FMDatabaseQueue *queue = [FMDatabaseQueue databaseQueueWithPath:self.dbPath];
-    [queue inDatabase:^(FMDatabase *adb) {
-        FMResultSet *rsl = [adb executeQueryWithFormat:@"%@", sql];
-        if(block)
-            block(nil, rsl);
-        [rsl close];
-        [adb close];
-    }];
-    
+    __block FMResultSet *rsl = nil;
+    dispatch_async(_serialQueue, ^{
+        rsl = [self executeQuery:sql];
+        block(nil, rsl);
+    });
 #pragma clang diagnostic pop
  
 }
@@ -124,17 +123,44 @@ static id sharedInstance = nil;
     
 }
 
+- (BOOL)JM_executeUpdate:(NSString *)sql
+{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+    NSLog(@"%@", sql);
+    __block BOOL ret = NO;
+    dispatch_sync(_serialQueue, ^{
+        ret = [self executeUpdate:sql];
+    });
+    return ret;
+#pragma clang diagnostic pop
+}
+
 - (void)JM_executeUpdate:(NSString *)sql withArgumentsInArray:(NSArray *)params completion:(FMDBUpdateCompletionBlock)block
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    BOOL suc = [self executeUpdate:sql withArgumentsInArray:params];
+    dispatch_sync(_serialQueue, ^{
+        BOOL suc = [self executeUpdate:sql withArgumentsInArray:params];
+        if (suc) {
+            block(nil);
+        } else {
+            NSError *err = [NSError errorWithDomain:@"fmdb"
+                                               code:-1
+                                           userInfo:@{@"msg":@"update failed"}];
+            block(err);
+        }
+    });
 #pragma clang diagnostic pop
 }
 
-- (void)JM_executeUpdate:(NSString *)sql withArgumentsInArray:(NSArray *)params
+- (BOOL)JM_executeUpdate:(NSString *)sql withArgumentsInArray:(NSArray *)params
 {
-    [self executeUpdate:sql withArgumentsInArray:params];
+    __block BOOL ret = NO;
+    dispatch_sync(_serialQueue, ^{
+        ret = [self executeUpdate:sql withArgumentsInArray:params];
+    });
+    return ret;
 }
 
 - (void)JM_executeUpdate:(NSString*)sql block:(FMDBCompletionBlock)block;
@@ -142,23 +168,23 @@ static id sharedInstance = nil;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
     
-    __weak NSString *weakSql = sql;
-    __block FMDBCompletionBlock blockCp = block;
-    FMDatabaseQueue *queue = [FMDatabaseQueue databaseQueueWithPath:self.dbPath];
-    [queue inDatabase:^(FMDatabase *adb) {
-        BOOL ret = [adb executeUpdateWithFormat:@"%@", weakSql];
-        if(ret) {
-            if(blockCp)
-                blockCp(nil, nil);
-        } else {
-            NSError *err =  [NSError errorWithDomain:@"data update err"
-                                              code:1
-                                          userInfo:nil];
-            if(blockCp)
-                blockCp(err, nil);
-        }
-        [adb close];
-    }];
+//    __weak NSString *weakSql = sql;
+//    __block FMDBCompletionBlock blockCp = block;
+//    FMDatabaseQueue *queue = [FMDatabaseQueue databaseQueueWithPath:self.dbPath];
+//    [queue inDatabase:^(FMDatabase *adb) {
+//        BOOL ret = [adb executeUpdateWithFormat:@"%@", weakSql];
+//        if(ret) {
+//            if(blockCp)
+//                blockCp(nil, nil);
+//        } else {
+//            NSError *err =  [NSError errorWithDomain:@"data update err"
+//                                              code:1
+//                                          userInfo:nil];
+//            if(blockCp)
+//                blockCp(err, nil);
+//        }
+//        [adb close];
+//    }];
 
 #pragma clang diagnostic pop
 

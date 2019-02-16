@@ -354,6 +354,12 @@ lastPathComponent], __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__] )
 @end
 
 /**
+ *  the property will be igored, will not be stored to database
+ */
+@protocol JMIgnore<NSObject>
+@end
+
+/**
  *  Depends on your usage(NOT IN USE YET)
  *
  *  @param result `NSArray` or `JSONModel` subclass type
@@ -485,6 +491,8 @@ lastPathComponent], __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__] )
  *  @return YES: success; NO: errer occured
  */
 + (BOOL)JM_deleteWhereRaw:(NSString *)sqlRaw;
++ (BOOL)JM_deleteWithPrimaryKeyValue:(id)value;
+
 /**
  *  解析查询结果(多条)
  */

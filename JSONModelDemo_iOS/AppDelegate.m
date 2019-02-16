@@ -121,10 +121,6 @@
     self.window.rootViewController = self.navigationController;
     
     [self test1];
-    
- 
-    
-    
     [self.window makeKeyAndVisible];
     return YES;
 }

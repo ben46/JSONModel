@@ -660,7 +660,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
                                                  );
                     } else if([protocolName isEqualToString:@"ConvertOnDemand"]) {
                         p.convertsOnDemand = YES;
-                    } else if([protocolName isEqualToString:@"Ignore"]) {
+                    } else if([protocolName isEqualToString:@"Ignore"] || [protocolName isEqualToString:@"JMIgnore"] ) {
                         p = nil;
                     } else {
                         p.protocol = protocolName;
@@ -1333,7 +1333,8 @@ static JSONKeyMapper* globalKeyMapper = nil;
 -(NSArray*)__propertiesNotNull__
 {
     NSMutableArray *prosNotNull = [NSMutableArray array];
-    for (JSONModelClassProperty* prop in [self __properties__]) {
+    NSArray *properies = [self __properties__];
+    for (JSONModelClassProperty* prop in properies) {
         
         if(prop.isStandardJSONType == NO) {
             [prosNotNull addObject:prop];
@@ -1645,7 +1646,6 @@ static JSONKeyMapper* globalKeyMapper = nil;
     NSMutableArray *arguments = [NSMutableArray array];
     NSString *sql = [self __updateSqlWithArguments:&arguments];
     [[FMDBHelper sharedInstance] JM_executeUpdate:sql withArgumentsInArray:(NSArray *)arguments];
-    [[FMDBHelper sharedInstance] commit];
 }
 
 - (void)JM_upsert;
@@ -1653,7 +1653,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
     [self JM_createTableIfNeeded];
     NSMutableArray *arguments = [NSMutableArray array];
     NSString *sql = [self __updateSqlWithArguments:&arguments];
-    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql withArgumentsInArray:(NSArray *)arguments];
+    [[FMDBHelper sharedInstance] JM_executeUpdate:sql withArgumentsInArray:(NSArray *)arguments];
 }
 
 - (void)JM_save_with_block:(JMCompletionBlock)block
@@ -1839,13 +1839,19 @@ static JSONKeyMapper* globalKeyMapper = nil;
 - (BOOL)JM_delete;
 {
     NSString *sql = [NSString stringWithFormat:@"delete from `%@` where %@ = '%@'", [[self class] __tableName], [[self class]__PK], [self __PKValue]];
-      [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
+    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
+}
+
++ (BOOL)JM_deleteWithPrimaryKeyValue:(id)value;
+{
+    NSString *sql = [NSString stringWithFormat:@"delete from `%@` where %@ = '%@'", [[self class] __tableName], [[self class] __PK], value];
+    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
 }
 
 + (BOOL)JM_deleteWhereRaw:(NSString *)sqlRaw
 {
     NSString *sql = [NSString stringWithFormat:@"delete from `%@` where %@", [self __tableName], sqlRaw];
-    [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
+    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
 }
 
 #pragma mark - pk
