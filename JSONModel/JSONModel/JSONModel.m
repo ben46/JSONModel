@@ -1524,7 +1524,7 @@ static JSONKeyMapper* globalKeyMapper = nil;
 {
     NSString *sql = [NSString stringWithFormat:@"select * from %@ where %@= '%@'",
                      [self __tableName], [self __PK], pkValue];
-    
+    NSLog(@"%@", sql);
     FMResultSet *rs = [[FMDBHelper sharedInstance] JM_executeQuery:sql];
     return [self JM_objectFromResultSet:rs];
 }
@@ -1633,6 +1633,39 @@ static JSONKeyMapper* globalKeyMapper = nil;
     
 }
 
+- (void)JM_insert{
+    [self JM_createTableIfNeeded];
+    NSMutableArray *arguments = [NSMutableArray array];
+    NSString *sql = [self __insertSqlWithArguments:&arguments];
+    [[FMDBHelper sharedInstance] JM_executeUpdate:sql withArgumentsInArray:(NSArray *)arguments];
+}
+
+- (void)JM_update{
+    [self JM_createTableIfNeeded];
+    NSMutableArray *arguments = [NSMutableArray array];
+    NSString *sql = [self __updateSqlWithArguments:&arguments];
+    [[FMDBHelper sharedInstance] JM_executeUpdate:sql withArgumentsInArray:(NSArray *)arguments];
+    [[FMDBHelper sharedInstance] commit];
+}
+
+- (void)JM_upsert;
+{
+    [self JM_createTableIfNeeded];
+    NSMutableArray *arguments = [NSMutableArray array];
+    NSString *sql = [self __updateSqlWithArguments:&arguments];
+    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql withArgumentsInArray:(NSArray *)arguments];
+}
+
+- (void)JM_save_with_block:(JMCompletionBlock)block
+{
+//    [self JM_createTableIfNeeded];
+//    NSMutableArray *arguments = [NSMutableArray array];
+//    NSString *sql = [self __saveSqlWithArguments:&arguments];
+//    [[FMDBHelper sharedInstance] JM_executeUpdate:sql
+//                             withArgumentsInArray:arguments
+//                                       completion:nil];
+}
+
 /**
  *  异步保存
  */
@@ -1709,19 +1742,110 @@ static JSONKeyMapper* globalKeyMapper = nil;
     return sql;
 }
 
+
+- (NSString *)__insertSqlWithArguments:(NSMutableArray **)arguments;
+{
+    return [self __sqlWithArguments:arguments operation:@"insert"];
+}
+
+- (NSString *)__updateSqlWithArguments:(NSMutableArray **)arguments;
+{
+    return [self __sqlWithArguments:arguments operation:@"update"];
+}
+
+// get save sql
+- (NSString *)__sqlWithArguments:(NSMutableArray **)arguments operation:(NSString *)operationType;
+{
+    NSMutableString *keysSql = [NSMutableString stringWithFormat:@""];
+    NSMutableString *valuesSql = [NSMutableString stringWithFormat:@""];
+    NSMutableString *keysValuesSql = [NSMutableString stringWithFormat:@""];
+
+    NSArray *prosNotNull = [self __propertiesNotNull__];
+    
+    for (int i = 0; i < prosNotNull.count; i++) {
+        JSONModelClassProperty* property = [prosNotNull objectAtIndex:i];
+        if(property.isStandardJSONType) {
+            
+            // only parse the value can be stored in sqlite
+            if([alowedSqliteTypes containsObject:property.type]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+                id value = nil;
+                if([property.type isSubclassOfClass:[NSString class]]) {
+                    NSString *tmpValue =[self performSelector:NSSelectorFromString(property.name)];
+                    value = [tmpValue JM_URLEncodeValue];
+                } else {
+                    value = [self performSelector:NSSelectorFromString(property.name)];
+                }
+#pragma clang diagnostic pop
+                [valuesSql appendString:@"?"];
+                [*arguments addObject:value];
+            } else {
+                continue;
+            }
+            
+        } else {
+            
+            id objValue = nil;
+            objValue = [self valueForKey: property.name];
+            
+            if([property.structName isEqualToString:@"BOOL"]) {
+                BOOL value = (BOOL)[self valueForKey:property.name];
+                if(value) {
+//                    [valuesSql appendFormat:@"'%d'", 1];
+                    [valuesSql appendString:@"?"];
+                    [*arguments addObject:@1];
+                } else {
+//                    [valuesSql appendFormat:@"'%d'", 0];
+                    [valuesSql appendString:@"?"];
+                    [*arguments addObject:@0];
+                }
+            } else {
+                NSNumber *value = [self valueForKey:property.name];
+//                [valuesSql appendFormat:@"'%@'", value];
+                [valuesSql appendString:@"?"];
+                [*arguments addObject:value];
+            }
+            
+        }
+        [keysSql appendFormat:@"%@", property.name];
+        [keysValuesSql appendFormat:@"%@ = ?", property.name];
+
+        if(i != prosNotNull.count - 1) {
+            [valuesSql appendString:@","];
+            [keysSql appendString:@","];
+            [keysValuesSql appendString:@","];
+        }
+    }
+    
+    NSString *sql = nil;
+    if ([operationType isEqualToString:@"update"]) {
+        sql = [NSString stringWithFormat:@"update %@ set %@ where `%@` = \'%@\'", [[self class] __tableName], keysValuesSql,  [[self class] __PK], [self __PKValue]];
+    } else if ([operationType isEqualToString:@"insert"]) {
+        sql = [NSString stringWithFormat:@"insert into %@ (%@) values (%@)", [[self class] __tableName], keysSql, valuesSql];
+    } else if ([operationType isEqualToString:@"replace"]) {
+        sql = [NSString stringWithFormat:@"replace into %@ (%@) values (%@)", [[self class] __tableName], keysSql, valuesSql];
+    }
+    
+    NSLog(@"%@", sql);
+    
+    return sql;
+}
+
+
 #pragma mark - delete
 
 // zq.zhou@tuobian.cn
 - (BOOL)JM_delete;
 {
     NSString *sql = [NSString stringWithFormat:@"delete from `%@` where %@ = '%@'", [[self class] __tableName], [[self class]__PK], [self __PKValue]];
-    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
+      [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
 }
 
 + (BOOL)JM_deleteWhereRaw:(NSString *)sqlRaw
 {
     NSString *sql = [NSString stringWithFormat:@"delete from `%@` where %@", [self __tableName], sqlRaw];
-    return [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
+    [[FMDBHelper sharedInstance] JM_executeUpdate:sql];
 }
 
 #pragma mark - pk

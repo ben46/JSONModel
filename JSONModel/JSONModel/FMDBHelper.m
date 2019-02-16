@@ -94,7 +94,7 @@ static id sharedInstance = nil;
 
     FMDatabaseQueue *queue = [FMDatabaseQueue databaseQueueWithPath:self.dbPath];
     [queue inDatabase:^(FMDatabase *adb) {
-        FMResultSet *rsl = [adb executeQueryWithFormat:sql];
+        FMResultSet *rsl = [adb executeQueryWithFormat:@"%@", sql];
         if(block)
             block(nil, rsl);
         [rsl close];
@@ -124,14 +124,17 @@ static id sharedInstance = nil;
     
 }
 
-- (BOOL)JM_executeUpdate:(NSString*)sql;
+- (void)JM_executeUpdate:(NSString *)sql withArgumentsInArray:(NSArray *)params completion:(FMDBUpdateCompletionBlock)block
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    BOOL ret = [self executeUpdateWithFormat:sql];
-    return ret;
+    BOOL suc = [self executeUpdate:sql withArgumentsInArray:params];
 #pragma clang diagnostic pop
+}
 
+- (void)JM_executeUpdate:(NSString *)sql withArgumentsInArray:(NSArray *)params
+{
+    [self executeUpdate:sql withArgumentsInArray:params];
 }
 
 - (void)JM_executeUpdate:(NSString*)sql block:(FMDBCompletionBlock)block;
@@ -143,7 +146,7 @@ static id sharedInstance = nil;
     __block FMDBCompletionBlock blockCp = block;
     FMDatabaseQueue *queue = [FMDatabaseQueue databaseQueueWithPath:self.dbPath];
     [queue inDatabase:^(FMDatabase *adb) {
-        BOOL ret = [adb executeUpdateWithFormat:weakSql];
+        BOOL ret = [adb executeUpdateWithFormat:@"%@", weakSql];
         if(ret) {
             if(blockCp)
                 blockCp(nil, nil);

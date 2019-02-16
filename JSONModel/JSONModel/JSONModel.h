@@ -19,6 +19,7 @@
 #import "JSONModelError.h"
 #import "JSONValueTransformer.h"
 #import "JSONKeyMapper.h"
+#import "JMDefine.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if TARGET_IPHONE_SIMULATOR
@@ -357,7 +358,6 @@ lastPathComponent], __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__] )
  *
  *  @param result `NSArray` or `JSONModel` subclass type
  */
-typedef void(^JMCompletionBlock)(id result);
 
 @interface JSONModel (FMDB)
 
@@ -458,6 +458,9 @@ typedef void(^JMCompletionBlock)(id result);
  *  @return if the data is saved
  */
 - (BOOL)JM_save;
+- (void)JM_insert;
+- (void)JM_upsert;
+- (void)JM_update;
 
 /**
  *  Async save data model into sqlite

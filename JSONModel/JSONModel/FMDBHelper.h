@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 #import <FMDatabase.h>
+#import "JMDefine.h"
 
-typedef void(^FMDBCompletionBlock)(NSError *err, FMResultSet* rsl);
 
 @interface FMDBHelper : FMDatabase
 
@@ -21,10 +21,13 @@ typedef void(^FMDBCompletionBlock)(NSError *err, FMResultSet* rsl);
 + (void)deleteDataBaseFile;
 
 - (FMResultSet *)JM_executeQuery:(NSString*)sql;
-- (void)JM_executeQuery:(NSString*)sql block:(FMDBCompletionBlock)block;
 
-- (BOOL)JM_executeUpdate:(NSString*)sql;
-- (void)JM_executeUpdate:(NSString*)sql block:(FMDBCompletionBlock)block;
+- (void)JM_executeQuery:(NSString*)sql block:(FMDBCompletionBlock)block;
+- (void)JM_executeQuery:(NSString *)sql withArgumentsInArray:(NSArray *)arguments completion:(FMDBCompletionBlock)block;
+
+- (void)JM_executeUpdate:(NSString *)sql;
+- (void)JM_executeUpdate:(NSString *)sql withArgumentsInArray:(NSArray *)params;
+- (void)JM_executeUpdate:(NSString *)sql withArgumentsInArray:(NSArray *)params completion:(FMDBUpdateCompletionBlock)block;
 
 - (BOOL)JM_executeStatements:(NSString *)sql;
 - (BOOL)JM_executeStatements:(NSString *)sql block:(FMDBExecuteStatementsCallbackBlock)block;

@@ -18,3 +18,4 @@ DerivedData
 /Pods
 *.xcworkspacedata
 *.xccheckout
+*.plist
