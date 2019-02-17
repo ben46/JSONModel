@@ -11,11 +11,14 @@
 #import "JSONModel.h"
 
 
-@interface FMDBHelper (){
-    dispatch_queue_t _serialQueue;
-}
+@interface FMDBHelper ()
 
 @property (strong, nonatomic) NSString       *dbPath;
+#if OS_OBJECT_HAVE_OBJC_SUPPORT == 1
+@property (strong, nonatomic) dispatch_queue_t       serialQueue;
+#else
+@property (assign, nonatomic) dispatch_queue_t       serialQueue;
+#endif
 
 @end
 
@@ -60,13 +63,13 @@ static id sharedInstance = nil;
 
 - (id)init
 {
-    _serialQueue = dispatch_queue_create("com.zqnetwork", DISPATCH_QUEUE_SERIAL);
     NSString *dataPath = [[[self class] __documentsDir] stringByAppendingPathComponent:kJMFileNameDefaultDataBase];
-    self = [[self class] databaseWithPath:dataPath];
+    self = [FMDBHelper databaseWithPath:dataPath];
     self.dbPath = dataPath;
     if (![self open]) {
         NSLog(@"Could not open Database: '%@'", [self lastErrorMessage]);
     }
+    self.serialQueue = dispatch_queue_create("com.zqnetwork", DISPATCH_QUEUE_SERIAL);
     return self;
 }
 
